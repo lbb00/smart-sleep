@@ -259,8 +259,12 @@ cmd_uninstall() {
 
     # Restore sleep settings
     if [ -f "/tmp/smart-sleep.state" ]; then
-        source /tmp/smart-sleep.state
-        sudo pmset -a disablesleep "${ORIG_DISABLESLEEP:-0}" displaysleep "${ORIG_DISPLAYSLEEP:-10}" 2>/dev/null
+        local orig_disablesleep orig_displaysleep
+        orig_disablesleep=$(grep '^ORIG_DISABLESLEEP=' /tmp/smart-sleep.state | cut -d= -f2 | tr -cd '0-9')
+        orig_displaysleep=$(grep '^ORIG_DISPLAYSLEEP=' /tmp/smart-sleep.state | cut -d= -f2 | tr -cd '0-9')
+        orig_disablesleep="${orig_disablesleep:-0}"
+        orig_displaysleep="${orig_displaysleep:-10}"
+        sudo pmset -a disablesleep "$orig_disablesleep" displaysleep "$orig_displaysleep" 2>/dev/null
         rm -f /tmp/smart-sleep.state
         echo "[✓] Sleep settings restored"
     else
