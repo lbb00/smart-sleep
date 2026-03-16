@@ -11,6 +11,7 @@ SCRIPT_NAME="smart-sleep.sh"
 PLIST_NAME="com.smart-sleep.plist"
 SUDOERS_FILE="/etc/sudoers.d/smart-sleep"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+LOG_FILE="${SMART_SLEEP_LOG:-/tmp/smart-sleep.log}"
 
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -73,9 +74,9 @@ cat > "$LAUNCH_AGENT_DIR/$PLIST_NAME" <<EOF
     <key>KeepAlive</key>
     <true/>
     <key>StandardOutPath</key>
-    <string>/tmp/smart-sleep.log</string>
+    <string>${LOG_FILE}</string>
     <key>StandardErrorPath</key>
-    <string>/tmp/smart-sleep.log</string>
+    <string>${LOG_FILE}</string>
 </dict>
 </plist>
 EOF
@@ -101,5 +102,5 @@ echo "    smart-sleep.sh timer      # Disable sleep for 1 hour"
 echo "    smart-sleep.sh timer-off  # Cancel timer"
 echo "    smart-sleep.sh stop       # Stop daemon"
 echo ""
-echo "  Logs: /tmp/smart-sleep.log"
+echo "  Logs: $LOG_FILE"
 echo ""
