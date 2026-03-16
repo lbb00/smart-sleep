@@ -31,10 +31,13 @@ pkill -f "smart-sleep.sh" 2>/dev/null || true
 
 # Restore sleep settings
 if [ -f "/tmp/smart-sleep.state" ]; then
-    source /tmp/smart-sleep.state
-    sudo pmset -a disablesleep "${ORIG_DISABLESLEEP:-0}" displaysleep "${ORIG_DISPLAYSLEEP:-10}" 2>/dev/null
+    orig_disablesleep=$(grep '^ORIG_DISABLESLEEP=' /tmp/smart-sleep.state | cut -d= -f2 | tr -cd '0-9')
+    orig_displaysleep=$(grep '^ORIG_DISPLAYSLEEP=' /tmp/smart-sleep.state | cut -d= -f2 | tr -cd '0-9')
+    orig_disablesleep="${orig_disablesleep:-0}"
+    orig_displaysleep="${orig_displaysleep:-10}"
+    sudo pmset -a disablesleep "$orig_disablesleep" displaysleep "$orig_displaysleep" 2>/dev/null
     rm -f /tmp/smart-sleep.state
-    info "Sleep settings restored (disablesleep=${ORIG_DISABLESLEEP:-0}, displaysleep=${ORIG_DISPLAYSLEEP:-10})"
+    info "Sleep settings restored (disablesleep=${orig_disablesleep}, displaysleep=${orig_displaysleep})"
 else
     sudo pmset -a disablesleep 0 2>/dev/null
     info "Sleep settings restored (disablesleep=0)"
