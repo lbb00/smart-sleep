@@ -66,9 +66,10 @@ log() {
 # Combines lid state + display count to correctly detect external displays.
 # Bug fix: when lid is closed, macOS only reports external displays (not built-in),
 # so display_count=1 means external is connected.
+# Uses ioreg instead of system_profiler for faster detection (ms vs 1-2s).
 has_external_display() {
     local display_count
-    display_count=$(system_profiler SPDisplaysDataType 2>/dev/null | grep -c "Resolution")
+    display_count=$(ioreg -r -c AppleDisplay 2>/dev/null | grep -c '"IODisplayConnectFlags"')
 
     if is_lid_closed; then
         # Lid closed: any display = external (built-in not reported)
