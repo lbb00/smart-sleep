@@ -44,11 +44,16 @@ else
 fi
 
 # Remove files
-[ -f "$LAUNCH_AGENT_DIR/$PLIST_NAME" ] && rm "$LAUNCH_AGENT_DIR/$PLIST_NAME" && info "LaunchAgent removed"
+plist_path="$LAUNCH_AGENT_DIR/$PLIST_NAME"
+log_path="/tmp/smart-sleep.log"
+if [ -f "$plist_path" ]; then
+    log_path=$(/usr/libexec/PlistBuddy -c "Print :StandardOutPath" "$plist_path" 2>/dev/null || echo "/tmp/smart-sleep.log")
+    rm "$plist_path" && info "LaunchAgent removed"
+fi
 [ -f "$INSTALL_DIR/$SCRIPT_NAME" ] && rm "$INSTALL_DIR/$SCRIPT_NAME" && info "Script removed"
 [ -f "/tmp/smart-sleep.pid" ] && rm "/tmp/smart-sleep.pid"
-[ -f "/tmp/smart-sleep.log" ] && rm "/tmp/smart-sleep.log" && info "Log removed"
-[ -f "/tmp/smart-sleep.log.old" ] && rm "/tmp/smart-sleep.log.old"
+[ -f "$log_path" ] && rm "$log_path" && info "Log removed"
+[ -f "${log_path}.old" ] && rm "${log_path}.old"
 
 # Remove sudoers
 if [ -f "$SUDOERS_FILE" ]; then

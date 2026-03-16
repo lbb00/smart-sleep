@@ -73,6 +73,11 @@ cat > "$LAUNCH_AGENT_DIR/$PLIST_NAME" <<EOF
     <true/>
     <key>KeepAlive</key>
     <true/>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>SMART_SLEEP_LOG</key>
+        <string>${LOG_FILE}</string>
+    </dict>
     <key>StandardOutPath</key>
     <string>${LOG_FILE}</string>
     <key>StandardErrorPath</key>

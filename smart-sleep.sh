@@ -229,6 +229,11 @@ cmd_install() {
     <true/>
     <key>KeepAlive</key>
     <true/>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>SMART_SLEEP_LOG</key>
+        <string>${LOG_FILE}</string>
+    </dict>
     <key>StandardOutPath</key>
     <string>${LOG_FILE}</string>
     <key>StandardErrorPath</key>
@@ -242,7 +247,7 @@ PLIST
     echo "[✓] Service started"
     echo ""
     echo "Usage: smart-sleep.sh status | timer | timer-off | stop"
-    echo "Logs:  /tmp/smart-sleep.log"
+    echo "Logs:  $LOG_FILE"
 }
 
 cmd_uninstall() {
@@ -273,10 +278,15 @@ cmd_uninstall() {
     fi
 
     # Remove LaunchAgent and temp files
-    [ -f "$launch_agent_dir/$plist_name" ] && rm "$launch_agent_dir/$plist_name" && echo "[✓] LaunchAgent removed"
+    local plist_path="$launch_agent_dir/$plist_name"
+    local log_path="/tmp/smart-sleep.log"
+    if [ -f "$plist_path" ]; then
+        log_path=$(/usr/libexec/PlistBuddy -c "Print :StandardOutPath" "$plist_path" 2>/dev/null || echo "/tmp/smart-sleep.log")
+        rm "$plist_path" && echo "[✓] LaunchAgent removed"
+    fi
     [ -f "/tmp/smart-sleep.pid" ] && rm "/tmp/smart-sleep.pid"
-    [ -f "/tmp/smart-sleep.log" ] && rm "/tmp/smart-sleep.log"
-    [ -f "/tmp/smart-sleep.log.old" ] && rm "/tmp/smart-sleep.log.old"
+    [ -f "$log_path" ] && rm "$log_path" && echo "[✓] Log removed"
+    [ -f "${log_path}.old" ] && rm "${log_path}.old"
 
     # Remove sudoers
     if [ -f "$sudoers_file" ]; then
