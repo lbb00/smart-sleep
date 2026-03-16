@@ -49,7 +49,7 @@ TIMER_END=0
 log() {
     local msg="$(date '+%Y-%m-%d %H:%M:%S') $1"
     echo "$msg" >> "$LOG_FILE"
-    echo "$msg"
+    [ -t 1 ] && echo "$msg"
 
     # Rotate log if too large
     if [ -f "$LOG_FILE" ]; then
@@ -57,7 +57,7 @@ log() {
         size=$(stat -f%z "$LOG_FILE" 2>/dev/null || echo 0)
         if [ "$size" -gt "$LOG_MAX_SIZE" ]; then
             mv "$LOG_FILE" "${LOG_FILE}.old"
-            log "Log rotated"
+            echo "$(date '+%Y-%m-%d %H:%M:%S') Log rotated" >> "$LOG_FILE"
         fi
     fi
 }
@@ -217,9 +217,9 @@ cmd_install() {
     <key>KeepAlive</key>
     <true/>
     <key>StandardOutPath</key>
-    <string>/tmp/smart-sleep.log</string>
+    <string>${LOG_FILE}</string>
     <key>StandardErrorPath</key>
-    <string>/tmp/smart-sleep.log</string>
+    <string>${LOG_FILE}</string>
 </dict>
 </plist>
 PLIST
