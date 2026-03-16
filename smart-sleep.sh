@@ -135,6 +135,7 @@ cleanup() {
     else
         sudo pmset -a disablesleep 0
     fi
+    rm -f /tmp/smart-sleep.pid
     exit 0
 }
 
@@ -168,7 +169,14 @@ EOF
 }
 
 get_pid() {
-    pgrep -f "smart-sleep.sh start" 2>/dev/null | grep -v $$ | head -1
+    local pid_file="/tmp/smart-sleep.pid"
+    if [ -f "$pid_file" ]; then
+        local pid
+        pid=$(cat "$pid_file" 2>/dev/null)
+        if [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null; then
+            echo "$pid"
+        fi
+    fi
 }
 
 cmd_install() {
@@ -408,8 +416,7 @@ cmd_start() {
     # Save original settings before modifying
     save_original_settings
 
-    # Initialize: ensure sleep is disabled and display sleep is configured
-    sudo pmset -a disablesleep 1
+    # Initialize display sleep setting
     apply_display_sleep
 
     # Write PID for signal-based commands
