@@ -129,10 +129,14 @@ trap handle_cancel_signal USR2
 cleanup() {
     log "Shutting down, restoring sleep settings..."
     if [ -f "$STATE_FILE" ]; then
-        source "$STATE_FILE"
-        sudo pmset -a disablesleep "${ORIG_DISABLESLEEP:-0}" displaysleep "${ORIG_DISPLAYSLEEP:-10}"
+        local orig_disablesleep orig_displaysleep
+        orig_disablesleep=$(grep '^ORIG_DISABLESLEEP=' "$STATE_FILE" | cut -d= -f2 | tr -cd '0-9')
+        orig_displaysleep=$(grep '^ORIG_DISPLAYSLEEP=' "$STATE_FILE" | cut -d= -f2 | tr -cd '0-9')
+        orig_disablesleep="${orig_disablesleep:-0}"
+        orig_displaysleep="${orig_displaysleep:-10}"
+        sudo pmset -a disablesleep "$orig_disablesleep" displaysleep "$orig_displaysleep"
         rm -f "$STATE_FILE"
-        log "Restored: disablesleep=${ORIG_DISABLESLEEP:-0}, displaysleep=${ORIG_DISPLAYSLEEP:-10}"
+        log "Restored: disablesleep=${orig_disablesleep}, displaysleep=${orig_displaysleep}"
     else
         sudo pmset -a disablesleep 0
     fi
