@@ -193,12 +193,10 @@ cmd_install() {
 
     [ "$(uname)" = "Darwin" ] || { echo "This tool only works on macOS"; exit 1; }
 
-    # Stop existing instance
-    if pgrep -f "smart-sleep.sh start" > /dev/null 2>&1; then
-        launchctl unload "$launch_agent_dir/$plist_name" 2>/dev/null || true
-        pkill -f "smart-sleep.sh start" 2>/dev/null || true
-        sleep 1
-    fi
+    # Stop existing instance (always unload to clear stale launchd registration)
+    launchctl unload "$launch_agent_dir/$plist_name" 2>/dev/null || true
+    pkill -f "smart-sleep.sh start" 2>/dev/null || true
+    sleep 1
 
     # Configure sudoers for passwordless pmset
     if [ ! -f "$sudoers_file" ]; then
