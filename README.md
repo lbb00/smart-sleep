@@ -42,7 +42,7 @@ All in a single shell script. No compilation. No dependencies. No App Store.
 
 ```bash
 brew tap lbb00/smart-sleep https://github.com/lbb00/smart-sleep
-brew install lbb00/smart-sleep/smart-sleep
+brew install smart-sleep
 ```
 
 ### Manual install
