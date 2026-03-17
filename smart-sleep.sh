@@ -16,7 +16,7 @@ CONFIG_FILE="${HOME}/.config/smart-sleep/config"
 LOG_FILE="${SMART_SLEEP_LOG:-/tmp/smart-sleep.log}"
 LOG_MAX_SIZE=1048576  # 1MB max log size before rotation
 STATE_FILE="/tmp/smart-sleep.state"
-VERSION="1.0.0"
+VERSION="1.0.1"
 
 # Defaults (overridden by config file)
 INTERVAL="${SMART_SLEEP_INTERVAL:-5}"
@@ -430,6 +430,17 @@ save_original_settings() {
 }
 
 cmd_start() {
+    # Prevent multiple instances
+    local existing_pid
+    existing_pid=$(get_pid)
+    if [ -n "$existing_pid" ] && [ "$existing_pid" != "$$" ]; then
+        echo "smart-sleep is already running (PID $existing_pid)"
+        exit 1
+    fi
+
+    # Write PID immediately to prevent race conditions
+    echo $$ > /tmp/smart-sleep.pid
+
     log "smart-sleep v${VERSION} started (interval=${INTERVAL}s, displaysleep=${DISPLAY_SLEEP}m)"
 
     # Save original settings before modifying
@@ -437,9 +448,6 @@ cmd_start() {
 
     # Initialize display sleep setting
     apply_display_sleep
-
-    # Write PID for signal-based commands
-    echo $$ > /tmp/smart-sleep.pid
 
     while true; do
         load_config
