@@ -3,8 +3,8 @@
 class SmartSleep < Formula
   desc "Intelligent clamshell mode manager for macOS"
   homepage "https://github.com/lbb00/smart-sleep"
-  url "https://github.com/lbb00/smart-sleep/archive/refs/tags/v1.0.1.tar.gz"
-  sha256 "c84dc585d3111aab953cbf67a01028b922776ca342cde44615e6bdd06f0b381a"
+  url "https://github.com/lbb00/smart-sleep/archive/refs/tags/v1.1.0.tar.gz"
+  sha256 "91ad3515d7740c6f65370583ad266f6739b5e3e161ac2b997466d7202197142c"
   head "https://github.com/lbb00/smart-sleep.git", branch: "main"
   license "Unlicense"
 
