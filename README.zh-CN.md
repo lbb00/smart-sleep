@@ -55,7 +55,7 @@ bash install.sh
 
 安装程序将：
 
-- 将 `smart-sleep.sh` 复制到 `~/.local/bin/`
+- 将 `smart-sleep` 复制到 `~/.local/bin/`
 - 仅为 `pmset` 配置免密 sudo
 - 安装并启动 LaunchAgent（登录后自动运行）
 
@@ -63,16 +63,16 @@ bash install.sh
 
 ```bash
 # 查看状态
-smart-sleep.sh status
+smart-sleep status
 
 # 禁用睡眠 1 小时（不受显示器状态影响）
-smart-sleep.sh timer
+smart-sleep timer
 
 # 取消计时器
-smart-sleep.sh timer-off
+smart-sleep timer-off
 
 # 停止守护进程
-smart-sleep.sh stop
+smart-sleep stop
 
 # 查看日志
 cat /tmp/smart-sleep.log
@@ -86,10 +86,10 @@ cat /tmp/smart-sleep.log
 
 ```bash
 # 设置轮询间隔为 3 秒
-smart-sleep.sh set interval 3
+smart-sleep set interval 3
 
 # 设置显示器睡眠超时为 5 分钟
-smart-sleep.sh set displaysleep 5
+smart-sleep set displaysleep 5
 ```
 
 配置保存在 `~/.config/smart-sleep/config`，会自动生效。

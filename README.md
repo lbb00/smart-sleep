@@ -55,7 +55,7 @@ bash install.sh
 
 The installer will:
 
-- Copy `smart-sleep.sh` to `~/.local/bin/`
+- Copy `smart-sleep` to `~/.local/bin/`
 - Configure passwordless `sudo` for `pmset` only
 - Install and start a LaunchAgent (auto-start on login)
 
@@ -63,22 +63,22 @@ The installer will:
 
 ```bash
 # Check status
-smart-sleep.sh status
+smart-sleep status
 
 # Disable sleep for 1 hour (regardless of display state)
-smart-sleep.sh timer
+smart-sleep timer
 
 # Cancel timer
-smart-sleep.sh timer-off
+smart-sleep timer-off
 
 # Stop the daemon
-smart-sleep.sh stop
+smart-sleep stop
 
 # View logs
 cat /tmp/smart-sleep.log
 ```
 
-> **Note:** Homebrew installs to your PATH. For manual install, add `~/.local/bin` to PATH or use the full path.
+> **Note:** Homebrew installs `smart-sleep` to your PATH. For manual install, add `~/.local/bin` to PATH or use the full path.
 
 ## Configuration
 
@@ -86,10 +86,10 @@ Modify settings on the fly without restarting the daemon:
 
 ```bash
 # Set polling interval to 3 seconds
-smart-sleep.sh set interval 3
+smart-sleep set interval 3
 
 # Set display sleep timeout to 5 minutes
-smart-sleep.sh set displaysleep 5
+smart-sleep set displaysleep 5
 ```
 
 Config is stored in `~/.config/smart-sleep/config` and picked up automatically.

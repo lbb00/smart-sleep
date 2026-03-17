@@ -9,18 +9,18 @@ class SmartSleep < Formula
   license "Unlicense"
 
   def install
-    bin.install "smart-sleep.sh" => "smart-sleep.sh"
+    bin.install "smart-sleep.sh" => "smart-sleep"
   end
 
   def post_install
-    system "#{bin}/smart-sleep.sh", "install"
+    system "#{bin}/smart-sleep", "install"
   end
 
   def uninstall
-    system "#{bin}/smart-sleep.sh", "uninstall"
+    system "#{bin}/smart-sleep", "uninstall"
   end
 
   test do
-    assert_match "smart-sleep", shell_output("#{bin}/smart-sleep.sh version")
+    assert_match "smart-sleep", shell_output("#{bin}/smart-sleep version")
   end
 end

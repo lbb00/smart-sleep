@@ -5,7 +5,7 @@
 
 INSTALL_DIR="$HOME/.local/bin"
 LAUNCH_AGENT_DIR="$HOME/Library/LaunchAgents"
-SCRIPT_NAME="smart-sleep.sh"
+SCRIPT_NAME="smart-sleep"
 PLIST_NAME="com.smart-sleep.plist"
 SUDOERS_FILE="/etc/sudoers.d/smart-sleep"
 
@@ -27,7 +27,7 @@ if launchctl list 2>/dev/null | grep -q "com.smart-sleep"; then
     info "Service stopped"
 fi
 
-pkill -f "smart-sleep.sh" 2>/dev/null || true
+pkill -f "smart-sleep" 2>/dev/null || true
 
 # Restore sleep settings
 if [ -f "/tmp/smart-sleep.state" ]; then

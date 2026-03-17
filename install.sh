@@ -7,7 +7,7 @@ set -e
 
 INSTALL_DIR="$HOME/.local/bin"
 LAUNCH_AGENT_DIR="$HOME/Library/LaunchAgents"
-SCRIPT_NAME="smart-sleep.sh"
+SCRIPT_NAME="smart-sleep"
 PLIST_NAME="com.smart-sleep.plist"
 SUDOERS_FILE="/etc/sudoers.d/smart-sleep"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -31,16 +31,16 @@ echo ""
 [ "$(uname)" = "Darwin" ] || error "This tool only works on macOS"
 
 # Stop existing instance
-if pgrep -f "smart-sleep.sh start" > /dev/null 2>&1; then
+if pgrep -f "smart-sleep start" > /dev/null 2>&1; then
     warn "Stopping existing smart-sleep instance..."
     launchctl unload "$LAUNCH_AGENT_DIR/$PLIST_NAME" 2>/dev/null || true
-    pkill -f "smart-sleep.sh start" 2>/dev/null || true
+    pkill -f "smart-sleep start" 2>/dev/null || true
     sleep 1
 fi
 
 # Install script
 mkdir -p "$INSTALL_DIR"
-cp "$SCRIPT_DIR/$SCRIPT_NAME" "$INSTALL_DIR/$SCRIPT_NAME"
+cp "$SCRIPT_DIR/smart-sleep.sh" "$INSTALL_DIR/$SCRIPT_NAME"
 chmod +x "$INSTALL_DIR/$SCRIPT_NAME"
 info "Installed $SCRIPT_NAME to $INSTALL_DIR/"
 
@@ -102,10 +102,10 @@ echo ""
 info "Installation complete!"
 echo ""
 echo "  Usage:"
-echo "    smart-sleep.sh status     # Check status"
-echo "    smart-sleep.sh timer      # Disable sleep for 1 hour"
-echo "    smart-sleep.sh timer-off  # Cancel timer"
-echo "    smart-sleep.sh stop       # Stop daemon"
+echo "    smart-sleep status     # Check status"
+echo "    smart-sleep timer      # Disable sleep for 1 hour"
+echo "    smart-sleep timer-off  # Cancel timer"
+echo "    smart-sleep stop       # Stop daemon"
 echo ""
 echo "  Logs: $LOG_FILE"
 echo ""

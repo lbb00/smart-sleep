@@ -151,7 +151,7 @@ usage() {
     cat <<EOF
 smart-sleep v${VERSION} - Intelligent clamshell mode manager for macOS
 
-Usage: smart-sleep.sh [command]
+Usage: smart-sleep [command]
 
 Commands:
   start                  Start the daemon (default)
@@ -166,7 +166,7 @@ Commands:
   version                Show version
 
 Config file: ~/.config/smart-sleep/config
-  Edit directly or use 'smart-sleep.sh set' commands.
+  Edit directly or use 'smart-sleep set' commands.
   Changes are picked up automatically without restart.
 
 EOF
@@ -195,7 +195,7 @@ cmd_install() {
 
     # Stop existing instance (always unload to clear stale launchd registration)
     launchctl unload "$launch_agent_dir/$plist_name" 2>/dev/null || true
-    pkill -f "smart-sleep.sh start" 2>/dev/null || true
+    pkill -f "smart-sleep start" 2>/dev/null || true
     sleep 1
 
     # Configure sudoers for passwordless pmset
@@ -244,7 +244,7 @@ PLIST
     launchctl load "$launch_agent_dir/$plist_name"
     echo "[✓] Service started"
     echo ""
-    echo "Usage: smart-sleep.sh status | timer | timer-off | stop"
+    echo "Usage: smart-sleep status | timer | timer-off | stop"
     echo "Logs:  $LOG_FILE"
 }
 
@@ -258,7 +258,7 @@ cmd_uninstall() {
         launchctl unload "$launch_agent_dir/$plist_name" 2>/dev/null
         echo "[✓] Service stopped"
     fi
-    pkill -f "smart-sleep.sh" 2>/dev/null || true
+    pkill -f "smart-sleep" 2>/dev/null || true
 
     # Restore sleep settings
     if [ -f "/tmp/smart-sleep.state" ]; then
@@ -374,7 +374,7 @@ cmd_timer_off() {
 cmd_set() {
     local key="$1" value="$2"
     if [ -z "$key" ] || [ -z "$value" ]; then
-        echo "Usage: smart-sleep.sh set <interval|displaysleep> <value>"
+        echo "Usage: smart-sleep set <interval|displaysleep> <value>"
         exit 1
     fi
 
