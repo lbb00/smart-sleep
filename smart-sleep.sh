@@ -16,7 +16,7 @@ CONFIG_FILE="${HOME}/.config/smart-sleep/config"
 LOG_FILE="${SMART_SLEEP_LOG:-/tmp/smart-sleep.log}"
 LOG_MAX_SIZE=1048576  # 1MB max log size before rotation
 STATE_FILE="/tmp/smart-sleep.state"
-VERSION="1.0.1"
+VERSION="1.1.0"
 
 # Defaults (overridden by config file)
 INTERVAL="${SMART_SLEEP_INTERVAL:-5}"
