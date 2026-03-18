@@ -147,7 +147,7 @@ cleanup() {
     else
         sudo pmset -a disablesleep 0
     fi
-    rm -f /tmp/smart-sleep.pid
+    rm -f /tmp/smart-sleep.pid /tmp/smart-sleep.lock
     exit 0
 }
 
@@ -268,19 +268,8 @@ cmd_uninstall() {
     pkill -f "smart-sleep start" 2>/dev/null || true
 
     # Restore sleep settings
-    if [ -f "/tmp/smart-sleep.state" ]; then
-        local orig_disablesleep orig_displaysleep
-        orig_disablesleep=$(grep '^ORIG_DISABLESLEEP=' /tmp/smart-sleep.state | cut -d= -f2 | tr -cd '0-9')
-        orig_displaysleep=$(grep '^ORIG_DISPLAYSLEEP=' /tmp/smart-sleep.state | cut -d= -f2 | tr -cd '0-9')
-        orig_disablesleep="${orig_disablesleep:-0}"
-        orig_displaysleep="${orig_displaysleep:-10}"
-        sudo pmset -a disablesleep "$orig_disablesleep" displaysleep "$orig_displaysleep" 2>/dev/null
-        rm -f /tmp/smart-sleep.state
-        echo "[✓] Sleep settings restored"
-    else
-        sudo pmset -a disablesleep 0 2>/dev/null
-        echo "[✓] Sleep settings restored"
-    fi
+    restore_sleep_settings
+    echo "[✓] Sleep settings restored"
 
     # Remove LaunchAgent and temp files
     local plist_path="$launch_agent_dir/$plist_name"
@@ -290,6 +279,7 @@ cmd_uninstall() {
         rm "$plist_path" && echo "[✓] LaunchAgent removed"
     fi
     [ -f "/tmp/smart-sleep.pid" ] && rm "/tmp/smart-sleep.pid"
+    [ -f "/tmp/smart-sleep.lock" ] && rm "/tmp/smart-sleep.lock"
     [ -f "$log_path" ] && rm "$log_path" && echo "[✓] Log removed"
     [ -f "${log_path}.old" ] && rm "${log_path}.old"
 
@@ -435,7 +425,15 @@ save_original_settings() {
 }
 
 cmd_start() {
-    # Prevent multiple instances
+    # Prevent multiple instances: use flock during critical section (check + write PID)
+    local lock_file="/tmp/smart-sleep.lock"
+    exec 200>"$lock_file"
+    if ! flock -n 200; then
+        echo "Another instance is starting"
+        exit 1
+    fi
+
+    # Critical section: holding lock
     local existing_pid
     existing_pid=$(get_pid)
     if [ -n "$existing_pid" ] && [ "$existing_pid" != "$$" ]; then
@@ -443,8 +441,8 @@ cmd_start() {
         exit 1
     fi
 
-    # Write PID immediately to prevent race conditions
     echo $$ > /tmp/smart-sleep.pid
+    exec 200>&-  # Release lock
 
     log "smart-sleep v${VERSION} started (interval=${INTERVAL}s, displaysleep=${DISPLAY_SLEEP}m)"
 

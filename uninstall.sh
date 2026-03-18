@@ -29,7 +29,7 @@ fi
 
 pkill -f "smart-sleep start" 2>/dev/null || true
 
-# Restore sleep settings
+# Restore sleep settings (mirrors restore_sleep_settings() in smart-sleep.sh for manual install path)
 if [ -f "/tmp/smart-sleep.state" ]; then
     orig_disablesleep=$(grep '^ORIG_DISABLESLEEP=' /tmp/smart-sleep.state | cut -d= -f2 | tr -cd '0-9')
     orig_displaysleep=$(grep '^ORIG_DISPLAYSLEEP=' /tmp/smart-sleep.state | cut -d= -f2 | tr -cd '0-9')
@@ -52,6 +52,7 @@ if [ -f "$plist_path" ]; then
 fi
 [ -f "$INSTALL_DIR/$SCRIPT_NAME" ] && rm "$INSTALL_DIR/$SCRIPT_NAME" && info "Script removed"
 [ -f "/tmp/smart-sleep.pid" ] && rm "/tmp/smart-sleep.pid"
+[ -f "/tmp/smart-sleep.lock" ] && rm "/tmp/smart-sleep.lock"
 [ -f "$log_path" ] && rm "$log_path" && info "Log removed"
 [ -f "${log_path}.old" ] && rm "${log_path}.old"
 
