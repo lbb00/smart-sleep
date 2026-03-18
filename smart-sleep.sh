@@ -133,20 +133,25 @@ trap handle_timer_signal USR1
 trap handle_cancel_signal USR2
 
 # ─── Cleanup ─────────────────────────────────────────────────────
-cleanup() {
-    log "Shutting down, restoring sleep settings..."
+# Restore original sleep settings from STATE_FILE. Uses defaults (0, 10) if missing.
+# If STATE_FILE doesn't exist, uses disablesleep 0.
+restore_sleep_settings() {
     if [ -f "$STATE_FILE" ]; then
         local orig_disablesleep orig_displaysleep
         orig_disablesleep=$(grep '^ORIG_DISABLESLEEP=' "$STATE_FILE" | cut -d= -f2 | tr -cd '0-9')
         orig_displaysleep=$(grep '^ORIG_DISPLAYSLEEP=' "$STATE_FILE" | cut -d= -f2 | tr -cd '0-9')
         orig_disablesleep="${orig_disablesleep:-0}"
         orig_displaysleep="${orig_displaysleep:-10}"
-        sudo pmset -a disablesleep "$orig_disablesleep" displaysleep "$orig_displaysleep"
+        sudo pmset -a disablesleep "$orig_disablesleep" displaysleep "$orig_displaysleep" 2>/dev/null
         rm -f "$STATE_FILE"
-        log "Restored: disablesleep=${orig_disablesleep}, displaysleep=${orig_displaysleep}"
     else
-        sudo pmset -a disablesleep 0
+        sudo pmset -a disablesleep 0 2>/dev/null
     fi
+}
+
+cleanup() {
+    log "Shutting down, restoring sleep settings..."
+    restore_sleep_settings
     rm -f /tmp/smart-sleep.pid /tmp/smart-sleep.lock
     exit 0
 }
