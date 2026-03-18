@@ -57,7 +57,7 @@ log() {
     echo "$msg" >> "$LOG_FILE"
     [ -t 1 ] && echo "$msg"
 
-    # Rotate log if too large
+    # Rotate log if too large (single daemon = single writer, no cross-process race)
     if [ -f "$LOG_FILE" ]; then
         local size
         size=$(stat -f%z "$LOG_FILE" 2>/dev/null || echo 0)
