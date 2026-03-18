@@ -135,17 +135,11 @@ Set initial defaults before installation:
 
 ## Uninstall
 
-**Homebrew:**
-```bash
-brew uninstall smart-sleep
-```
+**Homebrew install:** Use `brew uninstall smart-sleep`. Optionally run `smart-sleep uninstall` first to stop the daemon and restore sleep settings before brew removes the binary.
 
-**Manual install:**
-```bash
-bash uninstall.sh
-```
+**Manual install:** Run `bash uninstall.sh` from the repo directory. This removes the script from `~/.local/bin/`, stops the daemon, cleans up sudoers, and restores default sleep settings.
 
-This will stop the daemon, remove all files, clean up sudoers, and restore default sleep settings.
+> **Note:** `uninstall.sh` is for manual install only. Homebrew manages its own binaries; use `brew uninstall` for Homebrew installs.
 
 ## License
 

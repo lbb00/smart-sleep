@@ -10,6 +10,8 @@
 # License: Unlicense (public domain)
 
 set -o pipefail
+# Intentionally do NOT use set -e: in daemon mode, transient command failures
+# (e.g. ioreg, pmset) should not exit the process; we want resilience.
 
 # ─── Configuration ───────────────────────────────────────────────
 CONFIG_FILE="${HOME}/.config/smart-sleep/config"

@@ -135,17 +135,11 @@ smart-sleep set displaysleep 5
 
 ## 卸载
 
-**Homebrew：**
-```bash
-brew uninstall smart-sleep
-```
+**Homebrew 安装：** 使用 `brew uninstall smart-sleep`。可先运行 `smart-sleep uninstall` 停止守护进程并恢复睡眠设置，再执行 brew 卸载。
 
-**手动安装：**
-```bash
-bash uninstall.sh
-```
+**手动安装：** 在仓库目录下运行 `bash uninstall.sh`。将从 `~/.local/bin/` 移除脚本、停止守护进程、清理 sudoers 配置并恢复默认睡眠设置。
 
-将停止守护进程、删除所有文件、清理 sudoers 配置并恢复默认睡眠设置。
+> **提示：** `uninstall.sh` 仅用于手动安装。Homebrew 自行管理其安装的二进制文件，Homebrew 安装请使用 `brew uninstall`。
 
 ## 许可证
 
