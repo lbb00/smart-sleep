@@ -30,13 +30,17 @@ load_config() {
         new_displaysleep=$(grep '^DISPLAY_SLEEP=' "$CONFIG_FILE" 2>/dev/null | cut -d= -f2)
 
         if [ -n "$new_interval" ] && [ "$new_interval" != "$INTERVAL" ]; then
-            INTERVAL="$new_interval"
-            log "Config reloaded: interval=${INTERVAL}s"
+            if [[ "$new_interval" =~ ^[0-9]+$ ]] && [ "$new_interval" -ge 1 ]; then
+                INTERVAL="$new_interval"
+                log "Config reloaded: interval=${INTERVAL}s"
+            fi
         fi
         if [ -n "$new_displaysleep" ] && [ "$new_displaysleep" != "$DISPLAY_SLEEP" ]; then
-            DISPLAY_SLEEP="$new_displaysleep"
-            apply_display_sleep
-            log "Config reloaded: displaysleep=${DISPLAY_SLEEP}m"
+            if [[ "$new_displaysleep" =~ ^[0-9]+$ ]]; then
+                DISPLAY_SLEEP="$new_displaysleep"
+                apply_display_sleep
+                log "Config reloaded: displaysleep=${DISPLAY_SLEEP}m"
+            fi
         fi
     fi
 }
@@ -69,7 +73,8 @@ log() {
 # Uses ioreg instead of system_profiler for faster detection (ms vs 1-2s).
 has_external_display() {
     local display_count
-    display_count=$(ioreg -r -c AppleDisplay 2>/dev/null | grep -c '"IODisplayConnectFlags"')
+    display_count=$(ioreg -r -c AppleDisplay 2>/dev/null | grep -c '"IODisplayConnectFlags"' || true)
+    display_count="${display_count:-0}"
 
     if is_lid_closed; then
         # Lid closed: any display = external (built-in not reported)
@@ -258,7 +263,7 @@ cmd_uninstall() {
         launchctl unload "$launch_agent_dir/$plist_name" 2>/dev/null
         echo "[✓] Service stopped"
     fi
-    pkill -f "smart-sleep" 2>/dev/null || true
+    pkill -f "smart-sleep start" 2>/dev/null || true
 
     # Restore sleep settings
     if [ -f "/tmp/smart-sleep.state" ]; then

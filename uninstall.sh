@@ -27,7 +27,7 @@ if launchctl list 2>/dev/null | grep -q "com.smart-sleep"; then
     info "Service stopped"
 fi
 
-pkill -f "smart-sleep" 2>/dev/null || true
+pkill -f "smart-sleep start" 2>/dev/null || true
 
 # Restore sleep settings
 if [ -f "/tmp/smart-sleep.state" ]; then

@@ -14,7 +14,7 @@ Simply running `pmset disablesleep 1` fixes this, but creates a new problem: you
 
 **smart-sleep** runs as a background daemon that:
 
-1. **Detects external displays** — uses `system_profiler` + lid state for accurate detection
+1. **Detects external displays** — uses `ioreg` + lid state for fast, accurate detection
 2. **Disables sleep** when an external display is connected (with or without power)
 3. **Forces sleep** when the display is disconnected and the lid is closed
 4. **Manages display timeout** — your display still sleeps after inactivity
