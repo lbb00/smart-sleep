@@ -75,11 +75,10 @@ log() {
 # Uses ioreg instead of system_profiler for faster detection (ms vs 1-2s).
 has_external_display() {
     local display_count
-    display_count=$(ioreg -r -c AppleDisplay 2>/dev/null | grep -c '"IODisplayConnectFlags"' || true)
-    display_count="${display_count:-0}"
+    display_count=$(set +o pipefail; system_profiler SPDisplaysDataType 2>/dev/null | grep -c "Resolution:")
 
     if is_lid_closed; then
-        # Lid closed: any display = external (built-in not reported)
+        # Lid closed: built-in not reported, any display = external
         [ "$display_count" -ge 1 ]
     else
         # Lid open: more than 1 display = has external
@@ -88,7 +87,7 @@ has_external_display() {
 }
 
 is_lid_closed() {
-    ioreg -r -k AppleClamshellState 2>/dev/null | grep -q '"AppleClamshellState" = Yes'
+    (set +o pipefail; ioreg -l 2>/dev/null | grep -q '"AppleClamshellState" = Yes')
 }
 
 # ─── Sleep management ────────────────────────────────────────────
@@ -104,6 +103,7 @@ ensure_awake() {
 
 force_sleep() {
     log "Forcing sleep now"
+    sudo pmset -a disablesleep 0
     pmset sleepnow
 }
 
