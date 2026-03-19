@@ -23,6 +23,16 @@ VERSION="1.1.0"
 # Defaults (overridden by config file)
 INTERVAL="${SMART_SLEEP_INTERVAL:-5}"
 DISPLAY_SLEEP="${SMART_SLEEP_DISPLAY_SLEEP:-10}"
+ORIGINAL_DISABLESLEEP="${SMART_SLEEP_ORIGINAL_DISABLESLEEP:-0}"
+ORIGINAL_DISPLAYSLEEP="${SMART_SLEEP_ORIGINAL_DISPLAYSLEEP:-10}"
+
+is_positive_integer() {
+    [[ "$1" =~ ^[1-9][0-9]*$ ]]
+}
+
+is_non_negative_integer() {
+    [[ "$1" =~ ^[0-9]+$ ]]
+}
 
 # Load config file if exists (called every loop for hot-reload)
 load_config() {
@@ -32,16 +42,20 @@ load_config() {
         new_displaysleep=$(grep '^DISPLAY_SLEEP=' "$CONFIG_FILE" 2>/dev/null | cut -d= -f2)
 
         if [ -n "$new_interval" ] && [ "$new_interval" != "$INTERVAL" ]; then
-            if [[ "$new_interval" =~ ^[0-9]+$ ]] && [ "$new_interval" -ge 1 ]; then
+            if is_positive_integer "$new_interval"; then
                 INTERVAL="$new_interval"
                 log "Config reloaded: interval=${INTERVAL}s"
+            else
+                log "Ignoring invalid INTERVAL value in config: ${new_interval}"
             fi
         fi
         if [ -n "$new_displaysleep" ] && [ "$new_displaysleep" != "$DISPLAY_SLEEP" ]; then
-            if [[ "$new_displaysleep" =~ ^[0-9]+$ ]]; then
+            if is_non_negative_integer "$new_displaysleep"; then
                 DISPLAY_SLEEP="$new_displaysleep"
                 apply_display_sleep
                 log "Config reloaded: displaysleep=${DISPLAY_SLEEP}m"
+            else
+                log "Ignoring invalid DISPLAY_SLEEP value in config: ${new_displaysleep}"
             fi
         fi
     fi
@@ -101,6 +115,13 @@ ensure_awake() {
     fi
 }
 
+restore_sleep_policy() {
+    local target="${ORIGINAL_DISABLESLEEP:-0}"
+    if [ "$(get_sleep_disabled)" != "$target" ]; then
+        sudo pmset -a disablesleep "$target"
+    fi
+}
+
 force_sleep() {
     log "Forcing sleep now"
     sudo pmset -a disablesleep 0
@@ -142,6 +163,8 @@ restore_sleep_settings() {
         orig_displaysleep=$(grep '^ORIG_DISPLAYSLEEP=' "$STATE_FILE" | cut -d= -f2 | tr -cd '0-9')
         orig_disablesleep="${orig_disablesleep:-0}"
         orig_displaysleep="${orig_displaysleep:-10}"
+        ORIGINAL_DISABLESLEEP="$orig_disablesleep"
+        ORIGINAL_DISPLAYSLEEP="$orig_displaysleep"
         sudo pmset -a disablesleep "$orig_disablesleep" displaysleep "$orig_displaysleep" 2>/dev/null
         rm -f "$STATE_FILE"
     else
@@ -196,6 +219,14 @@ get_pid() {
     fi
 }
 
+get_launch_agent_path() {
+    echo "$HOME/Library/LaunchAgents/com.smart-sleep.plist"
+}
+
+launch_agent_exists() {
+    [ -f "$(get_launch_agent_path)" ]
+}
+
 cmd_install() {
     local script_path
     script_path="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
@@ -233,7 +264,7 @@ cmd_install() {
     <array>
         <string>/bin/bash</string>
         <string>${script_path}</string>
-        <string>start</string>
+        <string>daemon</string>
     </array>
     <key>RunAtLoad</key>
     <true/>
@@ -339,12 +370,32 @@ cmd_status() {
     fi
 }
 
-cmd_stop() {
+stop_daemon_process() {
     local pid
     pid=$(get_pid)
     if [ -n "$pid" ]; then
         kill "$pid" 2>/dev/null
-        echo "Stopped smart-sleep (PID $pid)"
+        return 0
+    else
+        return 1
+    fi
+}
+
+cmd_stop() {
+    local plist_path
+    local stopped=0
+    plist_path="$(get_launch_agent_path)"
+
+    if [ -f "$plist_path" ]; then
+        launchctl unload "$plist_path" 2>/dev/null || true
+    fi
+
+    if stop_daemon_process; then
+        stopped=1
+    fi
+
+    if [ "$stopped" -eq 1 ]; then
+        echo "Stopped smart-sleep"
     else
         echo "smart-sleep is not running"
     fi
@@ -423,13 +474,20 @@ save_original_settings() {
         local orig_disablesleep
         orig_displaysleep=$(pmset -g 2>/dev/null | awk '/displaysleep/{print $2}')
         orig_disablesleep=$(pmset -g 2>/dev/null | awk '/SleepDisabled/{print $2}')
+        ORIGINAL_DISPLAYSLEEP="${orig_displaysleep:-10}"
+        ORIGINAL_DISABLESLEEP="${orig_disablesleep:-0}"
         echo "ORIG_DISPLAYSLEEP=${orig_displaysleep:-10}" > "$STATE_FILE"
         echo "ORIG_DISABLESLEEP=${orig_disablesleep:-0}" >> "$STATE_FILE"
         log "Saved original settings: displaysleep=${orig_displaysleep}, disablesleep=${orig_disablesleep}"
+    else
+        ORIGINAL_DISPLAYSLEEP=$(grep '^ORIG_DISPLAYSLEEP=' "$STATE_FILE" | cut -d= -f2 | tr -cd '0-9')
+        ORIGINAL_DISABLESLEEP=$(grep '^ORIG_DISABLESLEEP=' "$STATE_FILE" | cut -d= -f2 | tr -cd '0-9')
+        ORIGINAL_DISPLAYSLEEP="${ORIGINAL_DISPLAYSLEEP:-10}"
+        ORIGINAL_DISABLESLEEP="${ORIGINAL_DISABLESLEEP:-0}"
     fi
 }
 
-cmd_start() {
+run_daemon() {
     # Prevent multiple instances: use flock during critical section (check + write PID)
     local lock_file="/tmp/smart-sleep.lock"
     exec 200>"$lock_file"
@@ -459,10 +517,10 @@ cmd_start() {
 
     while true; do
         load_config
-        ensure_awake
 
         # Timer override: if timer is active, keep awake regardless
         if is_timer_active; then
+            ensure_awake
             if [ "$LAST_STATE" != "timer" ]; then
                 log "Timer active, keeping awake"
                 LAST_STATE="timer"
@@ -475,6 +533,7 @@ cmd_start() {
         fi
 
         if has_external_display; then
+            ensure_awake
             if [ "$LAST_STATE" != "display_connected" ]; then
                 log "External display detected, sleep disabled"
                 LAST_STATE="display_connected"
@@ -487,8 +546,9 @@ cmd_start() {
                     force_sleep
                 fi
             else
+                restore_sleep_policy
                 if [ "$LAST_STATE" != "no_external" ]; then
-                    log "No external display, lid open, staying awake"
+                    log "No external display, lid open, restoring idle sleep"
                     LAST_STATE="no_external"
                 fi
             fi
@@ -498,9 +558,33 @@ cmd_start() {
     done
 }
 
+cmd_start() {
+    local plist_path
+    plist_path="$(get_launch_agent_path)"
+
+    if launch_agent_exists; then
+        if launchctl load "$plist_path" 2>/dev/null; then
+            echo "Started smart-sleep LaunchAgent"
+        else
+            local pid
+            pid=$(get_pid)
+            if [ -n "$pid" ]; then
+                echo "smart-sleep is already running (PID $pid)"
+                return 0
+            fi
+            echo "Failed to start LaunchAgent"
+            return 1
+        fi
+        return 0
+    fi
+
+    run_daemon
+}
+
 # ─── Entry point ─────────────────────────────────────────────────
 case "${1:-start}" in
     start)      cmd_start ;;
+    daemon)     run_daemon ;;
     stop)       cmd_stop ;;
     install)    cmd_install ;;
     uninstall)  cmd_uninstall ;;

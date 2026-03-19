@@ -67,7 +67,7 @@ cat > "$LAUNCH_AGENT_DIR/$PLIST_NAME" <<EOF
     <array>
         <string>/bin/bash</string>
         <string>${INSTALL_DIR}/${SCRIPT_NAME}</string>
-        <string>start</string>
+        <string>daemon</string>
     </array>
     <key>RunAtLoad</key>
     <true/>
@@ -103,6 +103,7 @@ info "Installation complete!"
 echo ""
 echo "  Usage:"
 echo "    smart-sleep status     # Check status"
+echo "    smart-sleep start      # Start or re-enable service"
 echo "    smart-sleep timer      # Disable sleep for 1 hour"
 echo "    smart-sleep timer-off  # Cancel timer"
 echo "    smart-sleep stop       # Stop daemon"

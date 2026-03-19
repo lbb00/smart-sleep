@@ -43,7 +43,10 @@ All in a single shell script. No compilation. No dependencies. No App Store.
 ```bash
 brew tap lbb00/smart-sleep https://github.com/lbb00/smart-sleep
 brew install smart-sleep
+smart-sleep install
 ```
+
+Homebrew only installs the executable. Run `smart-sleep install` yourself to configure `sudoers` and the LaunchAgent.
 
 ### Manual install
 
@@ -71,6 +74,9 @@ smart-sleep timer
 # Cancel timer
 smart-sleep timer-off
 
+# Start or re-enable the LaunchAgent service
+smart-sleep start
+
 # Stop the daemon
 smart-sleep stop
 
@@ -93,6 +99,7 @@ smart-sleep set displaysleep 5
 ```
 
 Config is stored in `~/.config/smart-sleep/config` and picked up automatically.
+Invalid values are ignored and noted in the log, so manual edits cannot break the running daemon.
 
 ### Environment Variables
 
@@ -129,13 +136,17 @@ Set initial defaults before installation:
 | Lid closed + external display (any power state) | ✅ Display works, Mac stays awake        |
 | Lock screen + idle 10 min                       | ✅ Display turns off                     |
 | Lid closed + display disconnected               | ✅ Mac sleeps within 5 seconds           |
-| Lid open + no external display                  | ✅ Normal operation                      |
+| Lid open + no external display                  | ✅ Original idle sleep policy restored   |
 | Manual Apple → Sleep                            | ✅ Works normally                        |
 | Sleep + reconnect display                       | ⚠️ Press external keyboard/mouse to wake |
 
 ## Uninstall
 
-**Homebrew install:** Use `brew uninstall smart-sleep`. Optionally run `smart-sleep uninstall` first to stop the daemon and restore sleep settings before brew removes the binary.
+**Homebrew:**
+```bash
+smart-sleep uninstall
+brew uninstall smart-sleep
+```
 
 **Manual install:** Run `bash uninstall.sh` from the repo directory. This removes the script from `~/.local/bin/`, stops the daemon, cleans up sudoers, and restores default sleep settings.
 

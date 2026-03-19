@@ -12,12 +12,15 @@ class SmartSleep < Formula
     bin.install "smart-sleep.sh" => "smart-sleep"
   end
 
-  def post_install
-    system "#{bin}/smart-sleep", "install"
-  end
+  def caveats
+    <<~EOS
+      Finish setup by running:
+        smart-sleep install
 
-  def uninstall
-    system "#{bin}/smart-sleep", "uninstall"
+      Before removing the formula, clean up the LaunchAgent and sudoers entry:
+        smart-sleep uninstall
+        brew uninstall smart-sleep
+    EOS
   end
 
   test do
